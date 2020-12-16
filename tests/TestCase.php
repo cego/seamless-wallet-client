@@ -1,6 +1,6 @@
 <?php
 
-namespace Unit;
+namespace Tests;
 
 use PHPUnit\Framework\TestCase as UnitTestCase;
 
@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase as UnitTestCase;
  * Used for implementing common method across test cases
  *
  */
-class CustomTestCase extends UnitTestCase
+class TestCase extends UnitTestCase
 {
 
 }
