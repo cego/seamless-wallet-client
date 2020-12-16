@@ -1,6 +1,6 @@
 <?php
 
-namespace Cego\Exceptions;
+namespace Cego\SeamlessWallet\Exceptions;
 
 use Exception;
 use Throwable;

@@ -7,18 +7,17 @@
     "prefer-stable": true,
     "authors": [
         {
-            "name": "Niki Zakariassen",
+            "name": "Niki Ewald Zakariassen",
             "email": "niza@cego.dk"
         },
         {
             "name": "Nikolaj Boel Jensen",
-            "email": "nbj@creationsftw.com"
+            "email": "nbj@cego.dk"
         }
     ],
 
     "require": {
-        "php": "^7.4",
-        "ramsey/uuid": "^4.1",
+        "php": "^7.4|^8.0",
         "nesbot/carbon": "^2.42",
         "illuminate/http": "^7.0|^8.0",
         "illuminate/support": "^7.0|^8.0",
@@ -33,7 +32,7 @@
 
     "autoload": {
         "psr-4": {
-            "Cego\\": "src/Cego"
+            "Cego\\": "src/"
         }
     },
 
