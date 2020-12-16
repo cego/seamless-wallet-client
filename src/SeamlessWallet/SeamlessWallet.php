@@ -3,8 +3,8 @@
 namespace Cego\SeamlessWallet;
 
 use InvalidArgumentException;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Client\Response;
 use Cego\SeamlessWallet\Exceptions\SeamlessWalletRequestFailedException;
 
 /**
@@ -20,7 +20,7 @@ class SeamlessWallet
     public const WALLET_WITHDRAW_ENDPOINT = '/api/v1/wallet/%s/withdraw';
     public const WALLET_BALANCE_ENDPOINT = '/api/v1/wallet/%s/balance';
 
-    public string $userId;
+    public ?string $userId;
 
     // Endpoint & credentials
     private string $serviceBaseUrl;
@@ -30,7 +30,7 @@ class SeamlessWallet
     /**
      * Private constructor to disallow using new
      *
-     * @param string serviceBaseUrl
+     * @param string $serviceBaseUrl
      * @param string $username
      * @param string $password
      */
@@ -48,11 +48,11 @@ class SeamlessWallet
      * @param string $username
      * @param string $password
      *
-     * @return static
+     * @return self
      */
     public static function create(string $serviceEndpoint, string $username, string $password): self
     {
-        return new SeamlessWallet($serviceEndpoint, $username, $password);
+        return new self($serviceEndpoint, $username, $password);
     }
 
     /**
@@ -222,6 +222,7 @@ class SeamlessWallet
 
             // Wait 1 sec before trying again, if server error
             usleep(1000000);
+            $try++;
         } while ($try < $maxTries);
 
         throw new SeamlessWalletRequestFailedException($response);
