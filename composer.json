@@ -1,5 +1,5 @@
 {
-    "name": "cego/seamless-wallet-interface",
+    "name": "cego/seamless-wallet-client",
     "description": "Package for interacting with the seamless wallet service",
     "type": "library",
     "license": "MIT",
