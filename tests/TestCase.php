@@ -2,7 +2,7 @@
 
 namespace Tests;
 
-use PHPUnit\Framework\TestCase as UnitTestCase;
+use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
 /**
  * Class TestCase
@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase as UnitTestCase;
  * Used for implementing common method across test cases
  *
  */
-class TestCase extends UnitTestCase
+class TestCase extends PHPUnitTestCase
 {
 
 }
