@@ -132,4 +132,60 @@ class SeamlessWalletTest extends TestCase
         // Assert
         $this->assertTrue(true); // Everything went OK
     }
+
+    /** @test */
+    public function it_throws_nothing_on_successful_rollback(): void
+    {
+        // Arrange
+        Http::fake(static function () {
+            return Http::response(["success" => true]);
+        });
+
+        // Act
+        $this->seamlessWallet
+            ->rollbackTransaction(Uuid::uuid6());
+
+        // Assert
+        $this->assertTrue(true); // Everything went OK
+    }
+
+    /** @test */
+    public function it_throws_an_exception_if_entering_empty_base_url(): void
+    {
+        // Arrange
+        $this->expectException(InvalidArgumentException::class);
+
+        // Act
+        SeamlessWallet::create("", "user", "pass");
+    }
+
+    /** @test */
+    public function it_throws_an_exception_if_entering_empty_username(): void
+    {
+        // Arrange
+        $this->expectException(InvalidArgumentException::class);
+
+        // Act
+        SeamlessWallet::create("base_url", "", "pass");
+    }
+
+    /** @test */
+    public function it_throws_an_exception_if_entering_empty_password(): void
+    {
+        // Arrange
+        $this->expectException(InvalidArgumentException::class);
+
+        // Act
+        SeamlessWallet::create("base_url", "user", "");
+    }
+
+    /** @test */
+    public function it_throws_no_exception_for_non_empty_credentials(): void
+    {
+        // Act
+        SeamlessWallet::create("base_url", "user", "pass");
+
+        // Assert
+        $this->assertTrue(true); // Nothing went wrong
+    }
 }

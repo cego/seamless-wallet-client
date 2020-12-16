@@ -49,15 +49,15 @@ class SeamlessWallet
     /**
      * Named constructor
      *
-     * @param string $serviceEndpoint
+     * @param string $serviceBaseUrl
      * @param string $username
      * @param string $password
      *
      * @return self
      */
-    public static function create(string $serviceEndpoint, string $username, string $password): self
+    public static function create(string $serviceBaseUrl, string $username, string $password): self
     {
-        return new self($serviceEndpoint, $username, $password);
+        return new self($serviceBaseUrl, $username, $password);
     }
 
     /**
