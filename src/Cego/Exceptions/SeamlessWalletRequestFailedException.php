@@ -19,6 +19,8 @@ class SeamlessWalletRequestFailedException extends Exception
      */
     public function __construct(Response $response, Throwable $previous = null)
     {
-        parent::__construct(sprintf('Seamless Wallet Service [%s]: %s', $response->status(), $response->body()), $response->status(), $previous);
+        $message = sprintf('Seamless Wallet Service [%s]: %s', $response->status(), $response->body());
+
+        parent::__construct($message, 500, $previous);
     }
 }
