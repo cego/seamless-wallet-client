@@ -18,5 +18,7 @@
     </testsuites>
     <php>
         <server name="APP_ENV" value="testing"/>
+        <server name="SEAMLESS_WALLET_CLIENT_MAXIMUM_NUMBER_OF_RETRIES" value="1"/>
+        <server name="SEAMLESS_WALLET_CLIENT_RETRY_DELAY" value="0"/>
     </php>
 </phpunit>

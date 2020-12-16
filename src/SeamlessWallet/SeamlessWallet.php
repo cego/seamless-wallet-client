@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Http;
 use Cego\SeamlessWallet\Exceptions\SeamlessWalletRequestFailedException;
 
 /**
- * Class SeamlessWalletService
+ * Class SeamlessWallet
  */
 class SeamlessWallet
 {
@@ -20,7 +20,7 @@ class SeamlessWallet
     public const WALLET_WITHDRAW_ENDPOINT = '/api/v1/wallet/%s/withdraw';
     public const WALLET_BALANCE_ENDPOINT = '/api/v1/wallet/%s/balance';
 
-    public ?string $userId;
+    public string $userId;
 
     // Endpoint & credentials
     private string $serviceBaseUrl;
@@ -36,6 +36,11 @@ class SeamlessWallet
      */
     private function __construct(string $serviceBaseUrl, string $username, string $password)
     {
+        // Validate data
+        if (empty($serviceBaseUrl) || empty($username) || empty($password)) {
+            throw new InvalidArgumentException("serviceBaseUrl, username, and password cannot be empty!");
+        }
+
         $this->serviceBaseUrl = $serviceBaseUrl;
         $this->username = $username;
         $this->password = $password;
@@ -152,7 +157,7 @@ class SeamlessWallet
      *
      * @return string
      */
-    public function getFullEndpointUrl(string $endpoint): string
+    private function getFullEndpointUrl(string $endpoint): string
     {
         return sprintf('%s/%s', $this->serviceBaseUrl, $endpoint);
     }
@@ -197,17 +202,16 @@ class SeamlessWallet
      *
      * @throws SeamlessWalletRequestFailedException
      */
-    private function makeRequest(string $method, string $endpoint, array $data = []): Response
+    protected function makeRequest(string $method, string $endpoint, array $data = []): Response
     {
-        $maxTries = 3;
+        $maxTries = env("SEAMLESS_WALLET_CLIENT_MAXIMUM_NUMBER_OF_RETRIES", 3);
         $try = 0;
 
         do {
             $response = Http::withBasicAuth($this->username, $this->password)
-                            ->withHeaders([
-                                "Content-type" => "application/json",
-                                "Accept"       => "application/json"
-                            ])
+                            ->asJson()      // Content-type header
+                            ->acceptJson()  // Accept header
+                            ->timeout(env("SEAMLESS_WALLET_CLIENT_TIMEOUT", 1))
                             ->$method($this->getFullEndpointUrl($endpoint), $data);
 
             // Bailout if successful
@@ -221,7 +225,7 @@ class SeamlessWallet
             }
 
             // Wait 1 sec before trying again, if server error
-            usleep(1000000);
+            usleep(env("SEAMLESS_WALLET_CLIENT_RETRY_DELAY", 1000000));
             $try++;
         } while ($try < $maxTries);
 
@@ -241,7 +245,7 @@ class SeamlessWallet
          */
         $calledMethod = debug_backtrace()[1]["function"];
 
-        if ($this->userId === null) {
+        if ( ! isset($this->userId)) {
             throw new InvalidArgumentException(sprintf("UserId is not set - Make sure to call ->forUser() before ->%s()", $calledMethod));
         }
     }

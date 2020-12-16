@@ -15,5 +15,6 @@
     </testsuites>
     <php>
         <server name="APP_ENV" value="testing"/>
+        <server name="SEAMLESS_WALLET_CLIENT_TIMEOUT" value="20"/>
     </php>
 </phpunit>

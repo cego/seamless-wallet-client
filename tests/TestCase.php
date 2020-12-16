@@ -2,6 +2,8 @@
 
 namespace Tests;
 
+use Illuminate\Http\Client\Factory;
+use Illuminate\Support\Facades\Http;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
 /**
@@ -11,4 +13,13 @@ use PHPUnit\Framework\TestCase as PHPUnitTestCase;
  */
 class TestCase extends PHPUnitTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        /**
+         * Make sure root facade is set for http client
+         */
+        Http::swap(new Factory());
+    }
 }
