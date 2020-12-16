@@ -1,0 +1,1 @@
+# SeamlessWallet PHP Client
