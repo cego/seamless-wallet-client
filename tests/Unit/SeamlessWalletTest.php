@@ -61,7 +61,7 @@ class SeamlessWalletTest extends TestCase
 
         // Act
         $this->seamlessWallet
-            ->forUser(Uuid::uuid6())
+            ->forPlayer(Uuid::uuid6())
             ->getBalance();
     }
 
@@ -76,7 +76,7 @@ class SeamlessWalletTest extends TestCase
 
         // Act
         $this->seamlessWallet
-            ->forUser(Uuid::uuid6())
+            ->forPlayer(Uuid::uuid6())
             ->getBalance();
     }
 
@@ -92,7 +92,7 @@ class SeamlessWalletTest extends TestCase
 
         // Act
         $actualAmount = $this->seamlessWallet
-            ->forUser(Uuid::uuid6())
+            ->forPlayer(Uuid::uuid6())
             ->getBalance();
 
         // Assert
@@ -109,7 +109,7 @@ class SeamlessWalletTest extends TestCase
 
         // Act
         $this->seamlessWallet
-            ->forUser(Uuid::uuid6())
+            ->forPlayer(Uuid::uuid6())
             ->deposit(123.45, Uuid::uuid6());
 
         // Assert
@@ -126,7 +126,7 @@ class SeamlessWalletTest extends TestCase
 
         // Act
         $this->seamlessWallet
-            ->forUser(Uuid::uuid6())
+            ->forPlayer(Uuid::uuid6())
             ->withdraw(123.45, Uuid::uuid6());
 
         // Assert

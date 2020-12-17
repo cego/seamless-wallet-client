@@ -19,8 +19,9 @@ class SeamlessWallet
     public const WALLET_DEPOSIT_ENDPOINT = '/api/v1/wallet/%s/deposit';
     public const WALLET_WITHDRAW_ENDPOINT = '/api/v1/wallet/%s/withdraw';
     public const WALLET_BALANCE_ENDPOINT = '/api/v1/wallet/%s/balance';
+    public const WALLET_CREATE_ENDPOINT = '/api/v1/wallet/create';
 
-    public string $userId;
+    public string $playerId;
 
     // Endpoint & credentials
     private string $serviceBaseUrl;
@@ -61,15 +62,33 @@ class SeamlessWallet
     }
 
     /**
+     * Creates the users wallet
+     *
+     * @return self
+     *
+     * @throws SeamlessWalletRequestFailedException
+     */
+    public function createWallet(): self
+    {
+        $this->guardAgainstMissingPlayerId();
+
+        $this->postRequest(self::WALLET_CREATE_ENDPOINT, [
+            "player_id" => $this->playerId,
+        ]);
+
+        return $this;
+    }
+
+    /**
      * Returns a wallet api instance linked to the given user
      *
-     * @param string $userId
+     * @param string $playerId
      *
      * @return self
      */
-    public function forUser(string $userId): self
+    public function forPlayer(string $playerId): self
     {
-        $this->userId = $userId;
+        $this->playerId = $playerId;
 
         return $this;
     }
@@ -83,9 +102,9 @@ class SeamlessWallet
      */
     public function getBalance(): string
     {
-        $this->guardAgainstMissingUserId();
+        $this->guardAgainstMissingPlayerId();
 
-        return $this->getRequest(sprintf(self::WALLET_BALANCE_ENDPOINT, $this->userId))['amount'];
+        return $this->getRequest(sprintf(self::WALLET_BALANCE_ENDPOINT, $this->playerId))['amount'];
     }
 
     /**
@@ -101,7 +120,7 @@ class SeamlessWallet
      */
     public function deposit($amount, string $transactionId, int $context = null, string $externalId = null): void
     {
-        $this->guardAgainstMissingUserId();
+        $this->guardAgainstMissingPlayerId();
 
         $requestData = [
             'amount'              => $amount,
@@ -110,7 +129,7 @@ class SeamlessWallet
             'external_id'         => $externalId,
         ];
 
-        $this->postRequest(sprintf(self::WALLET_DEPOSIT_ENDPOINT, $this->userId), $requestData);
+        $this->postRequest(sprintf(self::WALLET_DEPOSIT_ENDPOINT, $this->playerId), $requestData);
     }
 
     /**
@@ -126,7 +145,7 @@ class SeamlessWallet
      */
     public function withdraw($amount, string $transactionId, int $context = null, string $externalId = null): void
     {
-        $this->guardAgainstMissingUserId();
+        $this->guardAgainstMissingPlayerId();
 
         $requestData = [
             'amount'              => $amount,
@@ -135,7 +154,7 @@ class SeamlessWallet
             'external_id'         => $externalId,
         ];
 
-        $this->postRequest(sprintf(self::WALLET_WITHDRAW_ENDPOINT, $this->userId), $requestData);
+        $this->postRequest(sprintf(self::WALLET_WITHDRAW_ENDPOINT, $this->playerId), $requestData);
     }
 
     /**
@@ -235,7 +254,7 @@ class SeamlessWallet
     /**
      * Guards against calling endpoints without first setting the userId
      */
-    private function guardAgainstMissingUserId(): void
+    private function guardAgainstMissingPlayerId(): void
     {
         /**
          * The debug_backtrace() returns the current callstack
@@ -245,8 +264,8 @@ class SeamlessWallet
          */
         $calledMethod = debug_backtrace()[1]["function"];
 
-        if ( ! isset($this->userId)) {
-            throw new InvalidArgumentException(sprintf("UserId is not set - Make sure to call ->forUser() before ->%s()", $calledMethod));
+        if ( ! isset($this->playerId)) {
+            throw new InvalidArgumentException(sprintf("UserId is not set - Make sure to call ->forPlayer() before ->%s()", $calledMethod));
         }
     }
 }
