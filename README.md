@@ -1,9 +1,5 @@
 # SeamlessWallet PHP Client
 
-[[_TOC_]]
-
-__TOC__
-
 Project was initially created by:
 
 - Niki Ewald Zakariassen (NIZA)
