@@ -7,5 +7,6 @@ namespace Cego\SeamlessWallet\Enums;
  */
 class TransactionContext
 {
-    public const SPIN = 1;
+    public const NONE = 1;
+    public const SPIN = 2;
 }

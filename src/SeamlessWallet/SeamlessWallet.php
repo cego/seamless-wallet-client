@@ -16,10 +16,10 @@ class SeamlessWallet
     public const TRANSACTION_ROLLBACK_ENDPOINT = '/api/v1/transactions/%s/rollback';
 
     // Wallet endpoints
-    public const WALLET_DEPOSIT_ENDPOINT = '/api/v1/wallet/%s/deposit';
-    public const WALLET_WITHDRAW_ENDPOINT = '/api/v1/wallet/%s/withdraw';
-    public const WALLET_BALANCE_ENDPOINT = '/api/v1/wallet/%s/balance';
-    public const WALLET_CREATE_ENDPOINT = '/api/v1/wallet/create';
+    public const WALLET_DEPOSIT_ENDPOINT = '/api/v1/wallets/%s/deposit';
+    public const WALLET_WITHDRAW_ENDPOINT = '/api/v1/wallets/%s/withdraw';
+    public const WALLET_BALANCE_ENDPOINT = '/api/v1/wallets/%s/balance';
+    public const WALLET_CREATE_ENDPOINT = '/api/v1/wallets/create';
 
     public string $playerId;
 
@@ -104,7 +104,7 @@ class SeamlessWallet
     {
         $this->guardAgainstMissingPlayerId();
 
-        return $this->getRequest(sprintf(self::WALLET_BALANCE_ENDPOINT, $this->playerId))['amount'];
+        return $this->getRequest(sprintf(self::WALLET_BALANCE_ENDPOINT, $this->playerId))['balance'];
     }
 
     /**
@@ -112,13 +112,13 @@ class SeamlessWallet
      *
      * @param string|float|int $amount
      * @param string $transactionId
-     * @param int|null $context
+     * @param int $context
      * @param string|null $externalId
      *
      * @throws InvalidArgumentException
      * @throws SeamlessWalletRequestFailedException
      */
-    public function deposit($amount, string $transactionId, int $context = null, string $externalId = null): void
+    public function deposit($amount, string $transactionId, int $context = 1, string $externalId = null): void
     {
         $this->guardAgainstMissingPlayerId();
 
@@ -126,8 +126,11 @@ class SeamlessWallet
             'amount'              => $amount,
             'transaction_id'      => $transactionId,
             'transaction_context' => $context,
-            'external_id'         => $externalId,
         ];
+
+        if ($externalId !== null) {
+            $requestData['external_id'] = $externalId;
+        }
 
         $this->postRequest(sprintf(self::WALLET_DEPOSIT_ENDPOINT, $this->playerId), $requestData);
     }
@@ -137,13 +140,13 @@ class SeamlessWallet
      *
      * @param string|float|int $amount
      * @param string $transactionId
-     * @param int|null $context
+     * @param int $context
      * @param string|null $externalId
      *
      * @throws InvalidArgumentException
      * @throws SeamlessWalletRequestFailedException
      */
-    public function withdraw($amount, string $transactionId, int $context = null, string $externalId = null): void
+    public function withdraw($amount, string $transactionId, int $context = 1, string $externalId = null): void
     {
         $this->guardAgainstMissingPlayerId();
 
@@ -151,8 +154,11 @@ class SeamlessWallet
             'amount'              => $amount,
             'transaction_id'      => $transactionId,
             'transaction_context' => $context,
-            'external_id'         => $externalId,
         ];
+
+        if ($externalId !== null) {
+            $requestData['external_id'] = $externalId;
+        }
 
         $this->postRequest(sprintf(self::WALLET_WITHDRAW_ENDPOINT, $this->playerId), $requestData);
     }
@@ -193,7 +199,7 @@ class SeamlessWallet
      */
     protected function postRequest(string $endpoint, array $data = []): array
     {
-        return $this->makeRequest('post', $this->getFullEndpointUrl($endpoint), $data)->json();
+        return $this->makeRequest('post', $endpoint, $data)->json();
     }
 
     /**
@@ -207,7 +213,7 @@ class SeamlessWallet
      */
     protected function getRequest(string $endpoint): array
     {
-        return $this->makeRequest('get', $this->getFullEndpointUrl($endpoint))->json();
+        return $this->makeRequest('get', $endpoint)->json();
     }
 
     /**
