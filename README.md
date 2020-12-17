@@ -41,7 +41,7 @@ SeamlessWallet::create(/* < credentials Here >*/)
 SeamlessWallet::create(/* < credentials Here >*/)
               ->rollbackTransaction("UUID6");
 ```
-<small>Note: After calling ->forPlayer() the id is kept in memory for later use</small>
+<sub>Note: After calling ->forPlayer() the id is kept in memory for later use</sub>
 
 ### Error Handling
 
