@@ -27,7 +27,7 @@ class SeamlessWalletIntegrationTest extends TestCase
         // Arrange
         $depositAmount = 1000.12;
 
-        $this->seamlessWallet->forPlayer(random_int(1, 1235))->createWallet();
+        $this->seamlessWallet->forPlayer(random_int(100000, 9999999))->createWallet();
 
         $this->assertEquals(0, $this->seamlessWallet->getBalance());
 
@@ -47,7 +47,7 @@ class SeamlessWalletIntegrationTest extends TestCase
         $withdrawAmount = 200.01;
         $expectedBalance = 800.11;
 
-        $this->seamlessWallet->forPlayer(random_int(1, 1235))->createWallet();
+        $this->seamlessWallet->forPlayer(random_int(100000, 9999999))->createWallet();
 
         $this->assertEquals(0, $this->seamlessWallet->getBalance());
 
@@ -64,7 +64,7 @@ class SeamlessWalletIntegrationTest extends TestCase
     public function it_can_return_the_balance_of_initial_zero(): void
     {
         // Arrange
-        $this->seamlessWallet->forPlayer(random_int(1, 1235))->createWallet();
+        $this->seamlessWallet->forPlayer(random_int(100000, 9999999))->createWallet();
 
         // Act
         $balance = $this->seamlessWallet->getBalance();
@@ -77,7 +77,7 @@ class SeamlessWalletIntegrationTest extends TestCase
     public function it_can_return_the_balance_after_consecutive_transactions(): void
     {
         // Arrange
-        $this->seamlessWallet->forPlayer(random_int(1, 1235))->createWallet();
+        $this->seamlessWallet->forPlayer(random_int(100000, 9999999))->createWallet();
 
         // Act
         $this->seamlessWallet->deposit(100, Uuid::uuid6());
@@ -95,7 +95,7 @@ class SeamlessWalletIntegrationTest extends TestCase
     public function it_can_rollback_a_withdrawal(): void
     {
         // Arrange
-        $this->seamlessWallet->forPlayer(random_int(1, 1235))->createWallet();
+        $this->seamlessWallet->forPlayer(random_int(100000, 9999999))->createWallet();
         $withdrawTransactionId = Uuid::uuid6();
 
         $this->assertEquals(0, $this->seamlessWallet->getBalance());
