@@ -22,4 +22,5 @@ class TransactionContext
     public const MANUEL = 13;
     public const PAYMENT = 14;
     public const PAYMENT_CANCELED = 15;
+    public const PROMOTION = 16;
 }
