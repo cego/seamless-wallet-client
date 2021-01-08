@@ -92,7 +92,9 @@ class SeamlessWallet
 
         // If a player change happens, we need to invalidate our
         // in-memory balance value
-        SeamlessWalletStore::$balance = null;
+        if (SeamlessWalletStore::$playerId != $playerId) {
+            SeamlessWalletStore::$balance = null;
+        }
 
         return $this;
     }

@@ -56,7 +56,7 @@ class SeamlessWalletTest extends TestCase
         // Arrange
         $this->expectException(SeamlessWalletRequestFailedException::class);
         Http::fake(static function () {
-            return Http::response(["success" => false, "message" => "error", "amount" => 0], 500);
+            return Http::response(["success" => false, "message" => "error", "balance" => 0], 500);
         });
 
         // Act
@@ -71,7 +71,7 @@ class SeamlessWalletTest extends TestCase
         // Arrange
         $this->expectException(SeamlessWalletRequestFailedException::class);
         Http::fake(static function () {
-            return Http::response(["success" => false, "message" => "error", "amount" => 0], 400);
+            return Http::response(["success" => false, "message" => "error", "balance" => 0], 400);
         });
 
         // Act
@@ -87,7 +87,7 @@ class SeamlessWalletTest extends TestCase
         $expectAmount = 123.12;
 
         Http::fake(static function () use ($expectAmount) {
-            return Http::response(["success" => true, "message" => "", "amount" => $expectAmount]);
+            return Http::response(["success" => true, "message" => "", "balance" => $expectAmount]);
         });
 
         // Act
@@ -104,7 +104,7 @@ class SeamlessWalletTest extends TestCase
     {
         // Arrange
         Http::fake(static function () {
-            return Http::response(["success" => true]);
+            return Http::response(["success" => true, "balance" => "123.45"]);
         });
 
         // Act
@@ -121,7 +121,7 @@ class SeamlessWalletTest extends TestCase
     {
         // Arrange
         Http::fake(static function () {
-            return Http::response(["success" => true]);
+            return Http::response(["success" => true, "balance" => 0]);
         });
 
         // Act
