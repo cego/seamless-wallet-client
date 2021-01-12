@@ -301,7 +301,7 @@ class SeamlessWallet
      *
      * @throws SeamlessWalletRequestFailedException
      */
-    private function sumOfWalletBalances(): string
+    public function getSumOfWalletBalances(): string
     {
         return $this->getRequest(self::METRICS_SUM_OF_WALLET_BALANCES)['sum'];
     }
