@@ -20,6 +20,7 @@ class SeamlessWallet
     public const WALLET_WITHDRAW_ENDPOINT = '/api/v1/wallets/%s/withdraw';
     public const WALLET_BALANCE_ENDPOINT = '/api/v1/wallets/%s/balance';
     public const WALLET_CREATE_ENDPOINT = '/api/v1/wallets/create';
+    public const METRICS_SUM_OF_WALLET_BALANCES = '/api/v1/metrics/sum_of_wallet_balances';
 
     public string $playerId;
 
@@ -291,5 +292,17 @@ class SeamlessWallet
         if ( ! isset($this->playerId)) {
             throw new InvalidArgumentException(sprintf("UserId is not set - Make sure to call ->forPlayer() before ->%s()", $calledMethod));
         }
+    }
+
+    /**
+     * Returns the sum of all wallet balances
+     *
+     * @return string
+     *
+     * @throws SeamlessWalletRequestFailedException
+     */
+    private function sumOfWalletBalances(): string
+    {
+        return $this->getRequest(self::METRICS_SUM_OF_WALLET_BALANCES)['sum'];
     }
 }
