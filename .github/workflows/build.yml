@@ -1,0 +1,27 @@
+name: build
+on: push
+jobs:
+  unittest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '7.4' }
+      - run: composer install --ignore-platform-reqs
+      - run: ./vendor/bin/php-cs-fixer fix --dry-run
+  php-cs-fixer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '7.4' }
+      - run: composer install --ignore-platform-reqs
+      - run: ./vendor/bin/phpunit
+  phpstan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '7.4' }
+      - run: composer install --ignore-platform-reqs
+      - run: ./vendor/bin/phpstan analyse src --level 7
