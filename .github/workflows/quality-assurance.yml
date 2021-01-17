@@ -1,6 +1,7 @@
-name: build
+name: quality-assurance
 on: push
 jobs:
+
   unittest:
     runs-on: ubuntu-latest
     steps:
@@ -8,7 +9,8 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with: { php-version: '7.4' }
       - run: composer install --ignore-platform-reqs
-      - run: ./vendor/bin/php-cs-fixer fix --dry-run
+      - run: ./vendor/bin/phpunit -c phpunit.xml
+
   php-cs-fixer:
     runs-on: ubuntu-latest
     steps:
@@ -16,7 +18,8 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with: { php-version: '7.4' }
       - run: composer install --ignore-platform-reqs
-      - run: ./vendor/bin/phpunit
+      - run: ./vendor/bin/php-cs-fixer fix --dry-run
+
   phpstan:
     runs-on: ubuntu-latest
     steps:

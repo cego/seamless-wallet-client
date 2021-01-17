@@ -1,5 +1,9 @@
 # SeamlessWallet PHP Client
 
+![workflow](https://img.shields.io/github/workflow/status/cego/seamless-wallet-client/quality-assurance)
+![version](https://img.shields.io/packagist/v/cego/seamless-wallet-client)
+![license](https://img.shields.io/packagist/l/cego/seamless-wallet-client)
+
 Project was initially created by:
 
 - Niki Ewald Zakariassen (NIZA)
