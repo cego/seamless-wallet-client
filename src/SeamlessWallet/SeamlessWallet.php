@@ -25,9 +25,9 @@ class SeamlessWallet
     public string $playerId;
 
     // Endpoint & credentials
-    private string $serviceBaseUrl;
-    private string $username;
-    private string $password;
+    protected string $serviceBaseUrl;
+    protected string $username;
+    protected string $password;
 
     /**
      * Private constructor to disallow using new
@@ -36,7 +36,7 @@ class SeamlessWallet
      * @param string $username
      * @param string $password
      */
-    private function __construct(string $serviceBaseUrl, string $username, string $password)
+    protected function __construct(string $serviceBaseUrl, string $username, string $password)
     {
         // Validate data
         if (empty($serviceBaseUrl) || empty($username) || empty($password)) {
@@ -200,7 +200,7 @@ class SeamlessWallet
      *
      * @return string
      */
-    private function getFullEndpointUrl(string $endpoint): string
+    protected function getFullEndpointUrl(string $endpoint): string
     {
         return sprintf('%s/%s', $this->serviceBaseUrl, $endpoint);
     }
@@ -279,7 +279,7 @@ class SeamlessWallet
     /**
      * Guards against calling endpoints without first setting the userId
      */
-    private function guardAgainstMissingPlayerId(): void
+    protected function guardAgainstMissingPlayerId(): void
     {
         /**
          * The debug_backtrace() returns the current callstack
@@ -287,7 +287,7 @@ class SeamlessWallet
          * debug_backtrace()[0] refers to the current method => guardAgainstMissingUserId()
          * debug_backtrace()[1] refers to the place that called guardAgainstMissingUserId()
          */
-        $calledMethod = debug_backtrace()[1]["function"];
+        $calledMethod = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2)[1]["function"];
 
         if ( ! isset($this->playerId)) {
             throw new InvalidArgumentException(sprintf("UserId is not set - Make sure to call ->forPlayer() before ->%s()", $calledMethod));
