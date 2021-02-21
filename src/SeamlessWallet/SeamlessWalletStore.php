@@ -13,16 +13,23 @@ namespace Cego\SeamlessWallet;
 class SeamlessWalletStore
 {
     /**
-     * The latest fetched balance from the service
+     * The fetched balances from the service, keyed by the player id
      *
-     * @var string|null $balance
+     * @var string[]
      */
-    public static ?string $balance = null;
+    public static array $balances = [];
 
     /**
-     * The latest player id, is used to know if the store should be invalidated
+     * The created wallets, a list of player ids whose wallets have been created
      *
-     * @var string|null $playerId
+     * @var string[]
      */
-    public static ?string $playerId = null;
+    public static array $createdWallets = [];
+
+    /**
+     * The sum of all wallets balance
+     *
+     * @var string|null
+     */
+    public static ?string $sumOfWalletBalances = null;
 }

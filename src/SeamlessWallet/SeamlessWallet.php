@@ -73,9 +73,17 @@ class SeamlessWallet
     {
         $this->guardAgainstMissingPlayerId();
 
+        // If we already created this players wallet, simply bail out
+        if (in_array($this->playerId, SeamlessWalletStore::$createdWallets)) {
+            return $this;
+        }
+
         $this->postRequest(self::WALLET_CREATE_ENDPOINT, [
             "player_id" => $this->playerId,
         ]);
+
+        // We successfully created the wallet, save the player if so we do not try to recreate the wallet later.
+        SeamlessWalletStore::$createdWallets[] = $this->playerId;
 
         return $this;
     }
@@ -91,17 +99,13 @@ class SeamlessWallet
     {
         $this->playerId = $playerId;
 
-        // If a player change happens, we need to invalidate our
-        // in-memory balance value
-        if (SeamlessWalletStore::$playerId != $playerId) {
-            SeamlessWalletStore::$balance = null;
-        }
-
         return $this;
     }
 
     /**
      * Returns the balance of the wallet
+     *
+     * If force fresh is set, then we will always make a request towards the seamless wallet even if we already know the balance value in static-store
      *
      * @param bool $forceFresh
      *
@@ -113,11 +117,23 @@ class SeamlessWallet
     {
         $this->guardAgainstMissingPlayerId();
 
-        if (SeamlessWalletStore::$balance === null || $forceFresh) {
-            SeamlessWalletStore::$balance = $this->getRequest(sprintf(self::WALLET_BALANCE_ENDPOINT, $this->playerId))['balance'];
+        if ($this->shouldMakeBalanceRequest($forceFresh)) {
+            SeamlessWalletStore::$balances[$this->playerId] = $this->getRequest(sprintf(self::WALLET_BALANCE_ENDPOINT, $this->playerId))['balance'];
         }
 
-        return SeamlessWalletStore::$balance;
+        return SeamlessWalletStore::$balances[$this->playerId];
+    }
+
+    /**
+     * Checks if we should perform a balance request, or if we can fetch the balance from static store
+     *
+     * @param bool $forceFresh
+     *
+     * @return bool
+     */
+    public function shouldMakeBalanceRequest(bool $forceFresh): bool
+    {
+        return $forceFresh || ! array_key_exists($this->playerId, SeamlessWalletStore::$balances);
     }
 
     /**
@@ -147,7 +163,7 @@ class SeamlessWallet
             $requestData['external_id'] = $externalId;
         }
 
-        return SeamlessWalletStore::$balance = $this->postRequest(sprintf(self::WALLET_DEPOSIT_ENDPOINT, $this->playerId), $requestData)['balance'];
+        return SeamlessWalletStore::$balances[$this->playerId] = $this->postRequest(sprintf(self::WALLET_DEPOSIT_ENDPOINT, $this->playerId), $requestData)['balance'];
     }
 
     /**
@@ -177,7 +193,7 @@ class SeamlessWallet
             $requestData['external_id'] = $externalId;
         }
 
-        return SeamlessWalletStore::$balance = $this->postRequest(sprintf(self::WALLET_WITHDRAW_ENDPOINT, $this->playerId), $requestData)['balance'];
+        return SeamlessWalletStore::$balances[$this->playerId] = $this->postRequest(sprintf(self::WALLET_WITHDRAW_ENDPOINT, $this->playerId), $requestData)['balance'];
     }
 
     /**
@@ -190,7 +206,10 @@ class SeamlessWallet
     public function rollbackTransaction(string $transactionId): void
     {
         $this->postRequest(sprintf(self::TRANSACTION_ROLLBACK_ENDPOINT, $transactionId));
-        SeamlessWalletStore::$balance = null;
+
+        // Since we do not know who the transaction belongs to,
+        // it means we have to clear all known balances.
+        SeamlessWalletStore::$balances = [];
     }
 
     /**
@@ -303,6 +322,10 @@ class SeamlessWallet
      */
     public function getSumOfWalletBalances(): string
     {
-        return $this->getRequest(self::METRICS_SUM_OF_WALLET_BALANCES)['sum'];
+        if (SeamlessWalletStore::$sumOfWalletBalances == null) {
+            SeamlessWalletStore::$sumOfWalletBalances = $this->getRequest(self::METRICS_SUM_OF_WALLET_BALANCES)['sum'];
+        }
+
+        return SeamlessWalletStore::$sumOfWalletBalances;
     }
 }
