@@ -237,8 +237,10 @@ class SeamlessWallet
             $queryParameters['per_page'] = $perPage;
         }
 
+        $response = $this->getRequest(sprintf(static::WALLET_TRANSACTIONS_ENDPOINT, $this->playerId), $queryParameters);
+
         return new TransactionsPaginator(
-            $this->getRequest(sprintf(static::WALLET_TRANSACTIONS_ENDPOINT, $this->playerId)),
+            collect($response->get('transactions')),
             $this,
             $queryParameters,
         );
@@ -291,14 +293,15 @@ class SeamlessWallet
      * Performs a get request
      *
      * @param string $endpoint
+     * @param array $queryParameters
      *
      * @return Collection
      *
      * @throws SeamlessWalletRequestFailedException
      */
-    protected function getRequest(string $endpoint): Collection
+    protected function getRequest(string $endpoint, array $queryParameters = []): Collection
     {
-        return collect($this->makeRequest('get', $endpoint)->json());
+        return collect($this->makeRequest('get', $endpoint, $queryParameters)->json());
     }
 
     /**

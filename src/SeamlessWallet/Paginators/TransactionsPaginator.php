@@ -2,6 +2,7 @@
 
 namespace Cego\SeamlessWallet\Paginators;
 
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Cego\SeamlessWallet\SeamlessWallet;
 use Cego\SeamlessWallet\Exceptions\NoSuchPageException;
@@ -47,11 +48,11 @@ class TransactionsPaginator extends Paginator
         return $this->client
             ->forPlayer($this->playerId)
             ->getPaginatedTransactions(
-                $this->queryParameters['from'],
-                $this->queryParameters['to'],
+                Carbon::parse($this->queryParameters['from']),
+                Carbon::parse($this->queryParameters['to']),
                 $this->queryParameters['contexts'] ?? [],
                 $this->getCurrentPageNumber() + 1,
-                $this->queryParameters['contexts'] ?? null,
+                $this->queryParameters['per_page'] ?? null,
             );
     }
 
@@ -72,11 +73,11 @@ class TransactionsPaginator extends Paginator
         return $this->client
             ->forPlayer($this->playerId)
             ->getPaginatedTransactions(
-                $this->queryParameters['from'],
-                $this->queryParameters['to'],
+                Carbon::parse($this->queryParameters['from']),
+                Carbon::parse($this->queryParameters['to']),
                 $this->queryParameters['contexts'] ?? [],
                 $this->getCurrentPageNumber() - 1,
-                $this->queryParameters['contexts'] ?? null,
+                $this->queryParameters['per_page'] ?? null,
             );
     }
 
