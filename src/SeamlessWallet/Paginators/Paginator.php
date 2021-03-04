@@ -126,7 +126,7 @@ class Paginator
      *
      * @return string|null
      */
-    public function getPrevPageUrl(): ?string
+    public function getPreviousPageUrl(): ?string
     {
         return $this->data->get('prev_page_url');
     }

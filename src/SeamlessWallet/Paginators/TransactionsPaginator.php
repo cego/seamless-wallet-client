@@ -50,10 +50,22 @@ class TransactionsPaginator extends Paginator
             ->getPaginatedTransactions(
                 Carbon::parse($this->queryParameters['from']),
                 Carbon::parse($this->queryParameters['to']),
-                $this->queryParameters['contexts'] ?? [],
+                $this->getContexts(),
                 $this->getCurrentPageNumber() + 1,
                 $this->queryParameters['per_page'] ?? null,
             );
+    }
+
+    /**
+     * @return string[]
+     */
+    private function getContexts(): array
+    {
+        if ( ! isset($this->queryParameters['contexts'])) {
+            return [];
+        }
+
+        return explode(",", $this->queryParameters['contexts']);
     }
 
     /**
@@ -64,7 +76,7 @@ class TransactionsPaginator extends Paginator
      * @throws SeamlessWalletRequestFailedException
      * @throws NoSuchPageException
      */
-    public function getPrevPage(): TransactionsPaginator
+    public function getPreviousPage(): TransactionsPaginator
     {
         if ($this->getCurrentPageNumber() == 1) {
             throw new NoSuchPageException($this, 0);
@@ -75,7 +87,7 @@ class TransactionsPaginator extends Paginator
             ->getPaginatedTransactions(
                 Carbon::parse($this->queryParameters['from']),
                 Carbon::parse($this->queryParameters['to']),
-                $this->queryParameters['contexts'] ?? [],
+                $this->getContexts(),
                 $this->getCurrentPageNumber() - 1,
                 $this->queryParameters['per_page'] ?? null,
             );

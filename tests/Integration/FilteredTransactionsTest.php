@@ -5,7 +5,9 @@ namespace Tests\Integration;
 use Carbon\Carbon;
 use Tests\TestCase;
 use Ramsey\Uuid\Uuid;
+use Doctrine\Inflector\Inflector;
 use Cego\SeamlessWallet\SeamlessWallet;
+use Doctrine\Inflector\InflectorFactory;
 use Cego\SeamlessWallet\Enums\TransactionContext;
 use Cego\SeamlessWallet\Exceptions\NoSuchPageException;
 
@@ -56,7 +58,7 @@ class FilteredTransactionsTest extends TestCase
         // Act
         $paginatorPage1 = $this->seamlessWallet->getPaginatedTransactions(Carbon::now(), Carbon::now(), [], 1, 1);
         $paginatorPage2 = $paginatorPage1->getNextPage();
-        $paginatorPage1 = $paginatorPage2->getPrevPage();
+        $paginatorPage1 = $paginatorPage2->getPreviousPage();
 
         // Assert
         $this->assertCount(1, $paginatorPage1->getData());
@@ -72,6 +74,38 @@ class FilteredTransactionsTest extends TestCase
         $this->assertEquals(2, $paginatorPage2->getLastPageNumber());
         $this->assertEquals(2, $paginatorPage2->getFrom());
         $this->assertEquals(2, $paginatorPage2->getTo());
+    }
+
+    /** @test */
+    public function it_can_walk_between_pages_with_filtered_contexts(): void
+    {
+        // Arrange
+        $this->seamlessWallet->deposit(100, Uuid::uuid6(), TransactionContext::PAYMENT);
+        $this->seamlessWallet->deposit(100, Uuid::uuid6(), TransactionContext::PAYMENT);
+        $this->seamlessWallet->withdraw(50, Uuid::uuid6(), TransactionContext::PAYOUT);
+        $this->seamlessWallet->withdraw(50, Uuid::uuid6(), TransactionContext::PAYOUT);
+
+        // Act
+        $paginatorPage1 = $this->seamlessWallet->getPaginatedTransactions(Carbon::now(), Carbon::now(), [TransactionContext::PAYMENT], 1, 1);
+        $paginatorPage2 = $paginatorPage1->getNextPage();
+        $paginatorPage1 = $paginatorPage2->getPreviousPage();
+
+        // Assert
+        $this->assertCount(1, $paginatorPage1->getData());
+        $this->assertEquals(2, $paginatorPage1->getTotalEntries());
+        $this->assertEquals(1, $paginatorPage1->getCurrentPageNumber());
+        $this->assertEquals(2, $paginatorPage1->getLastPageNumber());
+        $this->assertEquals(1, $paginatorPage1->getFrom());
+        $this->assertEquals(1, $paginatorPage1->getTo());
+        $this->assertEquals(TransactionContext::PAYMENT, $paginatorPage1->getData()[0]->transaction_context_id);
+
+        $this->assertCount(1, $paginatorPage2->getData());
+        $this->assertEquals(2, $paginatorPage2->getTotalEntries());
+        $this->assertEquals(2, $paginatorPage2->getCurrentPageNumber());
+        $this->assertEquals(2, $paginatorPage2->getLastPageNumber());
+        $this->assertEquals(2, $paginatorPage2->getFrom());
+        $this->assertEquals(2, $paginatorPage2->getTo());
+        $this->assertEquals(TransactionContext::PAYMENT, $paginatorPage2->getData()[0]->transaction_context_id);
     }
 
     /** @test */
@@ -105,7 +139,7 @@ class FilteredTransactionsTest extends TestCase
 
         // Act
         $paginator = $this->seamlessWallet->getPaginatedTransactions(Carbon::now(), Carbon::now(), [TransactionContext::PAYMENT, TransactionContext::PAYOUT], 1, 100);
-        $paginator->getPrevPage();
+        $paginator->getPreviousPage();
     }
 
     public function it_throws_exceptions_if_accessing_pages_that_does_not_exist_for_next_page()

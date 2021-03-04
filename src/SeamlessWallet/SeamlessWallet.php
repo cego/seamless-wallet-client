@@ -42,7 +42,7 @@ class SeamlessWallet
      * @param string $username
      * @param string $password
      */
-    protected function __construct(string $serviceBaseUrl, string $username, string $password)
+    final protected function __construct(string $serviceBaseUrl, string $username, string $password)
     {
         // Validate data
         if (empty($serviceBaseUrl) || empty($username) || empty($password)) {
@@ -65,7 +65,6 @@ class SeamlessWallet
      */
     public static function create(string $serviceBaseUrl, string $username, string $password): self
     {
-        /** @phpstan-ignore-next-line */
         return new static($serviceBaseUrl, $username, $password);
     }
 
