@@ -5,9 +5,7 @@ namespace Tests\Integration;
 use Carbon\Carbon;
 use Tests\TestCase;
 use Ramsey\Uuid\Uuid;
-use Doctrine\Inflector\Inflector;
 use Cego\SeamlessWallet\SeamlessWallet;
-use Doctrine\Inflector\InflectorFactory;
 use Cego\SeamlessWallet\Enums\TransactionContext;
 use Cego\SeamlessWallet\Exceptions\NoSuchPageException;
 
