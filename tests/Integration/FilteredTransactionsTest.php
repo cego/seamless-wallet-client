@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Tests\TestCase;
 use Ramsey\Uuid\Uuid;
 use Cego\SeamlessWallet\SeamlessWallet;
+use Cego\SeamlessWallet\Enums\TransactionType;
 use Cego\SeamlessWallet\Enums\TransactionContext;
 use Cego\SeamlessWallet\Exceptions\NoSuchPageException;
 
@@ -149,5 +150,24 @@ class FilteredTransactionsTest extends TestCase
         // Act
         $paginator = $this->seamlessWallet->getPaginatedTransactions(Carbon::now(), Carbon::now(), [TransactionContext::PAYMENT, TransactionContext::PAYOUT], 1, 100);
         $paginator->getNextPage();
+    }
+
+    /** @test */
+    public function it_returns_the_expected_data_for_each_transactions(): void
+    {
+        // Arrange
+        $this->seamlessWallet->deposit(50, $uuid = Uuid::uuid6(), TransactionContext::PAYOUT);
+
+        // Act
+        $paginator = $this->seamlessWallet->getPaginatedTransactions(Carbon::now(), Carbon::now(), [], 1, 100);
+
+        // Assert
+        $this->assertCount(1, $paginator->getData());
+        $this->assertEquals($uuid->toString(), $paginator->getData()[0]->id);
+        $this->assertEquals(50, $paginator->getData()[0]->amount);
+        $this->assertEquals(TransactionType::DEPOSIT, $paginator->getData()[0]->transaction_type_id);
+        $this->assertEquals(TransactionContext::PAYOUT, $paginator->getData()[0]->transaction_context_id);
+        $this->assertEquals(50, $paginator->getData()[0]->new_balance);
+        $this->assertEquals(null, $paginator->getData()[0]->rolled_back_at);
     }
 }
