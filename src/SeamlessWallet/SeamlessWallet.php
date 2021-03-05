@@ -2,9 +2,12 @@
 
 namespace Cego\SeamlessWallet;
 
+use Carbon\Carbon;
 use InvalidArgumentException;
+use Illuminate\Support\Collection;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Cego\SeamlessWallet\Paginators\TransactionsPaginator;
 use Cego\SeamlessWallet\Exceptions\SeamlessWalletRequestFailedException;
 
 /**
@@ -20,6 +23,9 @@ class SeamlessWallet
     public const WALLET_WITHDRAW_ENDPOINT = '/api/v1/wallets/%s/withdraw';
     public const WALLET_BALANCE_ENDPOINT = '/api/v1/wallets/%s/balance';
     public const WALLET_CREATE_ENDPOINT = '/api/v1/wallets/create';
+    public const WALLET_TRANSACTIONS_ENDPOINT = '/api/v1/wallets/%s/transactions';
+
+    // Metrics endpoints
     public const METRICS_SUM_OF_WALLET_BALANCES = '/api/v1/metrics/sum_of_wallet_balances';
 
     public string $playerId;
@@ -36,7 +42,7 @@ class SeamlessWallet
      * @param string $username
      * @param string $password
      */
-    protected function __construct(string $serviceBaseUrl, string $username, string $password)
+    final protected function __construct(string $serviceBaseUrl, string $username, string $password)
     {
         // Validate data
         if (empty($serviceBaseUrl) || empty($username) || empty($password)) {
@@ -197,6 +203,49 @@ class SeamlessWallet
     }
 
     /**
+     * Returns transactions belonging to a players wallet.
+     *
+     * FromDate and ToDate are required, but context and pagination size is optional.
+     * Default pagination size is determined by the Service if no perPage size is given.
+     *
+     * @param Carbon $fromDate
+     * @param Carbon $toDate
+     * @param array $contexts
+     * @param int $page
+     * @param int|null $perPage
+     *
+     * @return TransactionsPaginator
+     *
+     * @throws SeamlessWalletRequestFailedException
+     */
+    public function getPaginatedTransactions(Carbon $fromDate, Carbon $toDate, array $contexts = [], int $page = 1, ?int $perPage = null): TransactionsPaginator
+    {
+        $this->guardAgainstMissingPlayerId();
+
+        $queryParameters = [
+            'from' => $fromDate->toDateString(),
+            'to'   => $toDate->toDateString(),
+            'page' => $page,
+        ];
+
+        if ($contexts) {
+            $queryParameters['contexts'] = implode(',', $contexts);
+        }
+
+        if ($perPage) {
+            $queryParameters['per_page'] = $perPage;
+        }
+
+        $response = $this->getRequest(sprintf(static::WALLET_TRANSACTIONS_ENDPOINT, $this->playerId), $queryParameters);
+
+        return new TransactionsPaginator(
+            collect($response->get('transactions')),
+            $this,
+            $queryParameters,
+        );
+    }
+
+    /**
      * Rollback the transaction
      *
      * @param string $transactionId
@@ -230,27 +279,28 @@ class SeamlessWallet
      * @param string $endpoint
      * @param array $data
      *
-     * @return array
+     * @return Collection
      *
      * @throws SeamlessWalletRequestFailedException
      */
-    protected function postRequest(string $endpoint, array $data = []): array
+    protected function postRequest(string $endpoint, array $data = []): Collection
     {
-        return $this->makeRequest('post', $endpoint, $data)->json();
+        return collect($this->makeRequest('post', $endpoint, $data)->json());
     }
 
     /**
      * Performs a get request
      *
      * @param string $endpoint
+     * @param array $queryParameters
      *
-     * @return array
+     * @return Collection
      *
      * @throws SeamlessWalletRequestFailedException
      */
-    protected function getRequest(string $endpoint): array
+    protected function getRequest(string $endpoint, array $queryParameters = []): Collection
     {
-        return $this->makeRequest('get', $endpoint)->json();
+        return collect($this->makeRequest('get', $endpoint, $queryParameters)->json());
     }
 
     /**
