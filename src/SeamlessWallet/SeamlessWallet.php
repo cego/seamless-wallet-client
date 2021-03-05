@@ -279,13 +279,13 @@ class SeamlessWallet
      * @param string $endpoint
      * @param array $data
      *
-     * @return array
+     * @return Collection
      *
      * @throws SeamlessWalletRequestFailedException
      */
-    protected function postRequest(string $endpoint, array $data = []): array
+    protected function postRequest(string $endpoint, array $data = []): Collection
     {
-        return $this->makeRequest('post', $endpoint, $data)->json();
+        return collect($this->makeRequest('post', $endpoint, $data)->json());
     }
 
     /**
