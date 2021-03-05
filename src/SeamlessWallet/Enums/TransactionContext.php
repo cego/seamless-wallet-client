@@ -23,4 +23,5 @@ class TransactionContext
     public const PAYMENT = 14;
     public const PAYMENT_CANCELED = 15;
     public const PROMOTION = 16;
+    public const FREE_SPIN = 17;
 }
