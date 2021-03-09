@@ -29,7 +29,11 @@
         "friendsofphp/php-cs-fixer": "^2.16",
         "phpstan/phpstan": "^0.12",
         "phpunit/phpunit": "^9.0",
-        "ramsey/uuid": "^4.1"
+        "ramsey/uuid": "^4.1",
+        "cego/request-insurance": "^0.1.3"
+    },
+    "suggest": {
+        "cego/request-insurance": "Allows for sending asynchronous requests"
     },
     "autoload": {
         "psr-4": {
