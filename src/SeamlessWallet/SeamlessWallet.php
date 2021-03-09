@@ -324,7 +324,7 @@ class SeamlessWallet
      */
     protected function getFullEndpointUrl(string $endpoint): string
     {
-        return sprintf('%s/%s', $this->serviceBaseUrl, $endpoint);
+        return sprintf('%s%s', $this->serviceBaseUrl, $endpoint);
     }
 
     /**

@@ -2,10 +2,11 @@
 
 namespace Cego\SeamlessWallet\RequestDrivers;
 
+use JsonException;
 use Illuminate\Support\Facades\Http;
 use Cego\RequestInsurance\Models\RequestInsurance;
 use Illuminate\Http\Client\Response as HttpResponse;
-use function _HumbugBox373c0874430e\React\Promise\resolve;
+use Illuminate\Contracts\Container\BindingResolutionException;
 
 class RequestInsuranceDriver implements RequestDriver
 {
@@ -21,21 +22,24 @@ class RequestInsuranceDriver implements RequestDriver
      * @param array $options
      *
      * @return Response
+     *
+     * @throws JsonException
+     * @throws BindingResolutionException
      */
     public function makeRequest(string $method, string $endpoint, array $data = [], array $headers = [], array $options = []): Response
     {
         $request = [
             'method'  => $method,
             'url'     => $endpoint,
-            'payload' => $data,
+            'payload' => json_encode($data, JSON_THROW_ON_ERROR),
             'headers' => $headers,
         ];
 
-        if ($options[static::OPTION_PRIORITY]) {
+        if (isset($options[static::OPTION_PRIORITY])) {
             $request['priority'] = $options[static::OPTION_PRIORITY];
         }
 
-        $requestInsurance = resolve(RequestInsurance::class);
+        $requestInsurance = app()->make(RequestInsurance::class);
 
         /** @phpstan-ignore-next-line Its a magic method from Laravel models */
         $requestInsurance::create($request);
