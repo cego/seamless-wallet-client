@@ -41,7 +41,19 @@ SeamlessWallet::create(/* < credentials Here >*/)
 SeamlessWallet::create(/* < credentials Here >*/)
               ->rollbackTransaction("UUID6");
 ```
+
+```php
+// Using request insurance
+SeamlessWallet::create(/* < credentials Here >*/)
+              ->useRequestInsurance()
+              ->forPlayer($playerId)
+              ->deposit(100, "UUID6" /*, $transaction_context, $external_id */);
+```
+
 <sub>Note: After calling ->forPlayer() the id is kept in memory for later use</sub>
+\
+<sub>Note: Request insurance is only usable for POST requests. GET requests will always use the synchronous HTTP driver</sub>
+
 
 ### Error Handling
 
