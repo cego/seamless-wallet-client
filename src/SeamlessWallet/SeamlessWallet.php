@@ -4,10 +4,12 @@ namespace Cego\SeamlessWallet;
 
 use Carbon\Carbon;
 use InvalidArgumentException;
-use Illuminate\Support\Collection;
-use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Http;
+use Cego\SeamlessWallet\RequestDrivers\Response;
+use Cego\RequestInsurance\Models\RequestInsurance;
+use Cego\SeamlessWallet\RequestDrivers\RequestDriver;
 use Cego\SeamlessWallet\Paginators\TransactionsPaginator;
+use Cego\SeamlessWallet\RequestDrivers\HttpRequestDriver;
+use Cego\SeamlessWallet\RequestDrivers\RequestInsuranceDriver;
 use Cego\SeamlessWallet\Exceptions\SeamlessWalletRequestFailedException;
 
 /**
@@ -34,6 +36,8 @@ class SeamlessWallet
     protected string $serviceBaseUrl;
     protected string $username;
     protected string $password;
+
+    public bool $useRequestInsurance = false;
 
     /**
      * Private constructor to disallow using new
@@ -69,13 +73,35 @@ class SeamlessWallet
     }
 
     /**
+     * Enables or disables the use of request insurance.
+     *
+     * NOTE: Request insurance is only possible for POST requests.
+     *
+     * @param bool $useRequestInsurance
+     *
+     * @return $this
+     */
+    public function useRequestInsurance(bool $useRequestInsurance = true): self
+    {
+        if ($useRequestInsurance && $this->cannotUseRequestInsurance()) {
+            throw new InvalidArgumentException('You need to install the Cego/Request-insurance package to use request insurance.');
+        }
+
+        $this->useRequestInsurance = $useRequestInsurance;
+
+        return $this;
+    }
+
+    /**
      * Creates the users wallet
+     *
+     * @param array $options
      *
      * @return self
      *
      * @throws SeamlessWalletRequestFailedException
      */
-    public function createWallet(): self
+    public function createWallet($options = []): self
     {
         $this->guardAgainstMissingPlayerId();
 
@@ -86,7 +112,7 @@ class SeamlessWallet
 
         $this->postRequest(self::WALLET_CREATE_ENDPOINT, [
             "player_id" => $this->playerId,
-        ]);
+        ], $options);
 
         // We successfully created the wallet, save the player if so we do not try to recreate the wallet later.
         SeamlessWalletStore::$createdWallets[] = $this->playerId;
@@ -114,17 +140,18 @@ class SeamlessWallet
      * If force fresh is set, then we will always make a request towards the seamless wallet even if we already know the balance value in static-store
      *
      * @param bool $forceFresh
+     * @param array $options
      *
-     * @return string
+     * @return string|null
      *
      * @throws SeamlessWalletRequestFailedException
      */
-    public function getBalance(bool $forceFresh = false): string
+    public function getBalance(bool $forceFresh = false, array $options = []): ?string
     {
         $this->guardAgainstMissingPlayerId();
 
         if ($this->shouldMakeBalanceRequest($forceFresh)) {
-            SeamlessWalletStore::$balances[$this->playerId] = $this->getRequest(sprintf(self::WALLET_BALANCE_ENDPOINT, $this->playerId))['balance'];
+            SeamlessWalletStore::$balances[$this->playerId] = $this->getRequest(sprintf(self::WALLET_BALANCE_ENDPOINT, $this->playerId), $options)['balance'];
         }
 
         return SeamlessWalletStore::$balances[$this->playerId];
@@ -143,33 +170,15 @@ class SeamlessWallet
     }
 
     /**
-     * Performs a deposit request to the wallet
+     * The inverse of shouldMakeBalanceRequest
      *
-     * @param string|float|int $amount
-     * @param string $transactionId
-     * @param int $context
-     * @param string|null $externalId
+     * @param bool $forceFresh
      *
-     * @return string
-     *
-     * @throws InvalidArgumentException
-     * @throws SeamlessWalletRequestFailedException
+     * @return bool
      */
-    public function deposit($amount, string $transactionId, int $context = 1, string $externalId = null): string
+    public function shouldNotMakeBalanceRequest(bool $forceFresh): bool
     {
-        $this->guardAgainstMissingPlayerId();
-
-        $requestData = [
-            'amount'              => $amount,
-            'transaction_id'      => $transactionId,
-            'transaction_context' => $context,
-        ];
-
-        if ($externalId !== null) {
-            $requestData['external_id'] = $externalId;
-        }
-
-        return SeamlessWalletStore::$balances[$this->playerId] = $this->postRequest(sprintf(self::WALLET_DEPOSIT_ENDPOINT, $this->playerId), $requestData)['balance'];
+        return ! $this->shouldMakeBalanceRequest($forceFresh);
     }
 
     /**
@@ -179,13 +188,50 @@ class SeamlessWallet
      * @param string $transactionId
      * @param int $context
      * @param string|null $externalId
+     * @param array $options
+     *
+     * @return string|null
+     *
+     * @throws SeamlessWalletRequestFailedException
+     */
+    public function deposit($amount, string $transactionId, int $context = 1, string $externalId = null, array $options = []): ?string
+    {
+        return $this->makeTransaction(self::WALLET_DEPOSIT_ENDPOINT, $amount, $transactionId, $context, $externalId, $options);
+    }
+
+    /**
+     * Performs a deposit request to the wallet
+     *
+     * @param string|float|int $amount
+     * @param string $transactionId
+     * @param int $context
+     * @param string|null $externalId
+     * @param array $options
      *
      * @return string
      *
-     * @throws InvalidArgumentException
      * @throws SeamlessWalletRequestFailedException
      */
-    public function withdraw($amount, string $transactionId, int $context = 1, string $externalId = null): string
+    public function withdraw($amount, string $transactionId, int $context = 1, string $externalId = null, array $options = []): ?string
+    {
+        return $this->makeTransaction(self::WALLET_WITHDRAW_ENDPOINT, $amount, $transactionId, $context, $externalId, $options);
+    }
+
+    /**
+     * Creates a transaction in the players wallet
+     *
+     * @param string $endpoint
+     * @param string|float|int $amount
+     * @param string $transactionId
+     * @param int $context
+     * @param string|null $externalId
+     * @param array $options
+     *
+     * @return string|null
+     *
+     * @throws SeamlessWalletRequestFailedException
+     */
+    protected function makeTransaction(string $endpoint, $amount, string $transactionId, int $context = 1, string $externalId = null, array $options = []): ?string
     {
         $this->guardAgainstMissingPlayerId();
 
@@ -199,7 +245,13 @@ class SeamlessWallet
             $requestData['external_id'] = $externalId;
         }
 
-        return SeamlessWalletStore::$balances[$this->playerId] = $this->postRequest(sprintf(self::WALLET_WITHDRAW_ENDPOINT, $this->playerId), $requestData)['balance'];
+        $response = $this->postRequest(sprintf($endpoint, $this->playerId), $requestData, $options);
+
+        if ( ! $response->isSynchronous) {
+            return null;
+        }
+
+        return SeamlessWalletStore::$balances[$this->playerId] = $response['balance'];
     }
 
     /**
@@ -213,12 +265,13 @@ class SeamlessWallet
      * @param array $contexts
      * @param int $page
      * @param int|null $perPage
+     * @param array $options
      *
      * @return TransactionsPaginator
      *
      * @throws SeamlessWalletRequestFailedException
      */
-    public function getPaginatedTransactions(Carbon $fromDate, Carbon $toDate, array $contexts = [], int $page = 1, ?int $perPage = null): TransactionsPaginator
+    public function getPaginatedTransactions(Carbon $fromDate, Carbon $toDate, array $contexts = [], int $page = 1, ?int $perPage = null, array $options = []): TransactionsPaginator
     {
         $this->guardAgainstMissingPlayerId();
 
@@ -236,10 +289,10 @@ class SeamlessWallet
             $queryParameters['per_page'] = $perPage;
         }
 
-        $response = $this->getRequest(sprintf(static::WALLET_TRANSACTIONS_ENDPOINT, $this->playerId), $queryParameters);
+        $response = $this->getRequest(sprintf(static::WALLET_TRANSACTIONS_ENDPOINT, $this->playerId), $queryParameters, $options);
 
         return new TransactionsPaginator(
-            collect($response->get('transactions')),
+            collect($response['transactions']),
             $this,
             $queryParameters,
         );
@@ -249,12 +302,13 @@ class SeamlessWallet
      * Rollback the transaction
      *
      * @param string $transactionId
+     * @param array $options
      *
      * @throws SeamlessWalletRequestFailedException
      */
-    public function rollbackTransaction(string $transactionId): void
+    public function rollbackTransaction(string $transactionId, array $options = []): void
     {
-        $this->postRequest(sprintf(self::TRANSACTION_ROLLBACK_ENDPOINT, $transactionId));
+        $this->postRequest(sprintf(self::TRANSACTION_ROLLBACK_ENDPOINT, $transactionId), $options);
 
         // Since we do not know who the transaction belongs to,
         // it means we have to clear all known balances.
@@ -270,7 +324,7 @@ class SeamlessWallet
      */
     protected function getFullEndpointUrl(string $endpoint): string
     {
-        return sprintf('%s/%s', $this->serviceBaseUrl, $endpoint);
+        return sprintf('%s%s', $this->serviceBaseUrl, $endpoint);
     }
 
     /**
@@ -278,14 +332,15 @@ class SeamlessWallet
      *
      * @param string $endpoint
      * @param array $data
+     * @param array $options
      *
-     * @return Collection
+     * @return Response
      *
      * @throws SeamlessWalletRequestFailedException
      */
-    protected function postRequest(string $endpoint, array $data = []): Collection
+    protected function postRequest(string $endpoint, array $data = [], array $options = []): Response
     {
-        return collect($this->makeRequest('post', $endpoint, $data)->json());
+        return $this->makeRequest('post', $endpoint, $data, $options);
     }
 
     /**
@@ -293,14 +348,15 @@ class SeamlessWallet
      *
      * @param string $endpoint
      * @param array $queryParameters
+     * @param array $options
      *
-     * @return Collection
+     * @return Response
      *
      * @throws SeamlessWalletRequestFailedException
      */
-    protected function getRequest(string $endpoint, array $queryParameters = []): Collection
+    protected function getRequest(string $endpoint, array $queryParameters = [], array $options = []): Response
     {
-        return collect($this->makeRequest('get', $endpoint, $queryParameters)->json());
+        return $this->makeRequest('get', $endpoint, $queryParameters, $options);
     }
 
     /**
@@ -309,40 +365,86 @@ class SeamlessWallet
      * @param string $method
      * @param string $endpoint
      * @param array $data
+     * @param array $options
      *
      * @return Response
      *
      * @throws SeamlessWalletRequestFailedException
      */
-    protected function makeRequest(string $method, string $endpoint, array $data = []): Response
+    protected function makeRequest(string $method, string $endpoint, array $data = [], array $options = []): Response
     {
-        $maxTries = env("SEAMLESS_WALLET_CLIENT_MAXIMUM_NUMBER_OF_RETRIES", 3);
-        $try = 0;
+        $driver = $this->getRequestDriver($method);
 
-        do {
-            /** @var Response $response */
-            $response = Http::withBasicAuth($this->username, $this->password)
-                            ->asJson()      // Content-type header
-                            ->acceptJson()  // Accept header
-                            ->timeout(env("SEAMLESS_WALLET_CLIENT_TIMEOUT", 1))
-                            ->$method($this->getFullEndpointUrl($endpoint), $data);
+        $headers = [
+            'Content-Type'  => 'application/json',
+            'Accept'        => 'application/json',
+            'Authorization' => $this->getAuth(),
+        ];
 
-            // Bailout if successful
-            if ($response->successful()) {
-                return $response;
-            }
+        return $driver->makeRequest($method, $this->getFullEndpointUrl($endpoint), $data, $headers, $options);
+    }
 
-            // Do not retry client errors
-            if ($response->clientError()) {
-                throw new SeamlessWalletRequestFailedException($response);
-            }
+    /**
+     * Returns the Authorization header value
+     *
+     * @return string
+     */
+    protected function getAuth(): string
+    {
+        $auth = sprintf('%s:%s', $this->username, $this->password);
 
-            // Wait 1 sec before trying again, if server error
-            usleep(env("SEAMLESS_WALLET_CLIENT_RETRY_DELAY", 1000000));
-            $try++;
-        } while ($try < $maxTries);
+        return sprintf('Basic %s', base64_encode($auth));
+    }
 
-        throw new SeamlessWalletRequestFailedException($response);
+    /**
+     * Returns the request driver that should be used for sending requests from the client towards the service
+     *
+     * @param string $method
+     *
+     * @return RequestDriver
+     */
+    protected function getRequestDriver(string $method): RequestDriver
+    {
+        $isPostRequest = strcasecmp($method, 'post') == 0;
+
+        return $isPostRequest && $this->shouldUseRequestInsurance()
+            ? new RequestInsuranceDriver()
+            : new HttpRequestDriver();
+    }
+
+    /**
+     * Returns true if the client should use request insurance, and false otherwise
+     *
+     * @return bool
+     */
+    protected function shouldUseRequestInsurance(): bool
+    {
+        return $this->useRequestInsurance
+            && $this->canUseRequestInsurance();
+    }
+
+    /**
+     * Checks if it is possible to use request insurance or not.
+     *
+     * Basically it checks if the request insurance package is installed or not
+     *
+     * @return bool
+     */
+    protected function canUseRequestInsurance(): bool
+    {
+        return class_exists(RequestInsurance::class);
+    }
+
+    /**
+     * Checks if it is possible to use request insurance or not.
+     *
+     * Basically it checks if the request insurance package is installed or not
+     *
+     * @return bool
+     */
+    protected function cannotUseRequestInsurance(): bool
+    {
+        return ! $this->canUseRequestInsurance();
     }
 
     /**
@@ -366,14 +468,16 @@ class SeamlessWallet
     /**
      * Returns the sum of all wallet balances
      *
+     * @param array $options
+     *
      * @return string
      *
      * @throws SeamlessWalletRequestFailedException
      */
-    public function getSumOfWalletBalances(): string
+    public function getSumOfWalletBalances(array $options = []): string
     {
         if (SeamlessWalletStore::$sumOfWalletBalances == null) {
-            SeamlessWalletStore::$sumOfWalletBalances = $this->getRequest(self::METRICS_SUM_OF_WALLET_BALANCES)['sum'];
+            SeamlessWalletStore::$sumOfWalletBalances = $this->getRequest(self::METRICS_SUM_OF_WALLET_BALANCES, $options)['sum'];
         }
 
         return SeamlessWalletStore::$sumOfWalletBalances;

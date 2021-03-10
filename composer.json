@@ -23,13 +23,19 @@
         "guzzlehttp/guzzle": "^6.5.5|^7.0.1",
         "vlucas/phpdotenv": "^5.2",
         "phpoption/phpoption": "^1.7",
-        "nbj/property-container": "^1.1"
+        "nbj/property-container": "^1.1",
+        "ext-json": "*"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.16",
         "phpstan/phpstan": "^0.12",
         "phpunit/phpunit": "^9.0",
-        "ramsey/uuid": "^4.1"
+        "ramsey/uuid": "^4.1",
+        "cego/request-insurance": "^0.1.3",
+        "orchestra/testbench": "^6.13"
+    },
+    "suggest": {
+        "cego/request-insurance": "Allows for sending asynchronous requests"
     },
     "autoload": {
         "psr-4": {

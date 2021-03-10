@@ -4,14 +4,13 @@ namespace Tests;
 
 use Illuminate\Http\Client\Factory;
 use Illuminate\Support\Facades\Http;
-use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
 /**
  * Class TestCase
  *
  * Used for implementing common method across test cases
  */
-class TestCase extends PHPUnitTestCase
+class TestCase extends \Orchestra\Testbench\TestCase
 {
     protected function setUp(): void
     {
