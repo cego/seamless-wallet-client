@@ -19,7 +19,9 @@ class RequestInsuranceTest extends TestCase
     {
         parent::setUp();
 
-        $this->seamlessWallet = SeamlessWallet::create("http://seamless-wallet.service.dk", "root", "secret123");
+        $this->seamlessWallet = SeamlessWallet::create("http://seamless-wallet.service.dk")
+                                              ->auth("root", "secret123");
+
         $this->loadMigrationsFrom(__DIR__ . '/../../vendor/cego/request-insurance/publishable/migrations');
     }
 
