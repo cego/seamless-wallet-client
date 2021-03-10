@@ -52,7 +52,7 @@ SeamlessWallet::create(/* < credentials Here >*/)
 
 <sub>Note: After calling ->forPlayer() the id is kept in memory for later use</sub>
 \
-<sub>Note: Request insurance is only usable for POST requests. GET requests will always use the synchronous HTTP driver</sub>
+<sub>Note: Request insurance is only usable for POST requests, and is remembered for following requests. GET requests will always use the synchronous HTTP driver</sub>
 
 
 ### Error Handling
