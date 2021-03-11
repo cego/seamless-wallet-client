@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ce9b0a13214c1494b297a9cceec3f93f",
+    "content-hash": "b18b55794a7a71749cbd48b5272be4d9",
     "packages": [
         {
             "name": "brick/math",
@@ -64,16 +64,16 @@
         },
         {
             "name": "cego/service-client-base",
-            "version": "0.0.2",
+            "version": "0.0.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cego/service-client-base.git",
-                "reference": "e4a9250795b0aaa227c22bf944a0ded8054ff08b"
+                "reference": "95c6dc3c49a1aed6c3838856f985437da2615e68"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cego/service-client-base/zipball/e4a9250795b0aaa227c22bf944a0ded8054ff08b",
-                "reference": "e4a9250795b0aaa227c22bf944a0ded8054ff08b",
+                "url": "https://api.github.com/repos/cego/service-client-base/zipball/95c6dc3c49a1aed6c3838856f985437da2615e68",
+                "reference": "95c6dc3c49a1aed6c3838856f985437da2615e68",
                 "shasum": ""
             },
             "require": {
@@ -114,9 +114,9 @@
             "description": "A package containing utility and abstractions for various specific clients implementations",
             "support": {
                 "issues": "https://github.com/cego/service-client-base/issues",
-                "source": "https://github.com/cego/service-client-base/tree/0.0.2"
+                "source": "https://github.com/cego/service-client-base/tree/0.0.3"
             },
-            "time": "2021-03-10T15:14:43+00:00"
+            "time": "2021-03-11T08:46:26+00:00"
         },
         {
             "name": "doctrine/inflector",
