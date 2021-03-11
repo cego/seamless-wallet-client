@@ -11,7 +11,8 @@ The seamless wallet client implements a fluid interface for interacting with the
 ### Interface
 ```php
 // Getting a client instance
-$seamlessWallet = SeamlessWallet::create(/* < credentials Here >*/);
+$seamlessWallet = SeamlessWallet::create('base_url')
+    ->auth(/* < Credentials > */);
 
 // Setting the target player
 $seamlessWallet->forPlayer($playerId);
@@ -19,35 +20,41 @@ $seamlessWallet->forPlayer($playerId);
 
 ```php
 // Creating a user wallet
-SeamlessWallet::create(/* < credentials Here >*/)
-              ->forPlayer($playerId)
-              ->createWallet();
+SeamlessWallet::create(/* < Base Url > */)
+    ->auth(/* < Credentials > */)
+    ->forPlayer($playerId)
+    ->createWallet();
 ```
 
 ```php
 // Deposits / withdraws / balance / rollback
-SeamlessWallet::create(/* < credentials Here >*/)
-              ->forPlayer($playerId)
-              ->deposit(100, "UUID6" /*, $transaction_context, $external_id */);
+SeamlessWallet::create(/* < Base Url > */)
+    ->auth(/* < Credentials > */)
+    ->forPlayer($playerId)
+    ->deposit(100, "UUID6" /*, $transaction_context, $external_id */);
 
-SeamlessWallet::create(/* < credentials Here >*/)
-              ->forPlayer($playerId)
-              ->withdraw(20, "UUID6" /*, $transaction_context, $external_id */);
+SeamlessWallet::create(/* < Base Url > */)
+    ->auth(/* < Credentials > */)
+    ->forPlayer($playerId)
+    ->withdraw(20, "UUID6" /*, $transaction_context, $external_id */);
 
-SeamlessWallet::create(/* < credentials Here >*/)
-              ->forPlayer($playerId)
-              ->getBalance();
+SeamlessWallet::create(/* < Base Url > */)
+    ->auth(/* < Credentials > */)
+    ->forPlayer($playerId)
+    ->getBalance();
 
-SeamlessWallet::create(/* < credentials Here >*/)
-              ->rollbackTransaction("UUID6");
+SeamlessWallet::create(/* < Base Url > */)
+    ->auth(/* < Credentials > */)
+    ->rollbackTransaction("UUID6");
 ```
 
 ```php
 // Using request insurance
-SeamlessWallet::create(/* < credentials Here >*/)
-              ->useRequestInsurance()
-              ->forPlayer($playerId)
-              ->deposit(100, "UUID6" /*, $transaction_context, $external_id */);
+SeamlessWallet::create(/* < Base Url > */)
+    ->auth(/* < Credentials > */)
+    ->useRequestInsurance()
+    ->forPlayer($playerId)
+    ->deposit(100, "UUID6" /*, $transaction_context, $external_id */);
 ```
 
 <sub>Note: After calling ->forPlayer() the id is kept in memory for later use</sub>

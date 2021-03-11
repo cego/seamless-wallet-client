@@ -24,7 +24,8 @@
         "vlucas/phpdotenv": "^5.2",
         "phpoption/phpoption": "^1.7",
         "nbj/property-container": "^1.1",
-        "ext-json": "*"
+        "ext-json": "*",
+        "cego/service-client-base": "^0.0.2"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.16",

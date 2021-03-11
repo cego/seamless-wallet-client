@@ -4,18 +4,14 @@ namespace Cego\SeamlessWallet;
 
 use Carbon\Carbon;
 use InvalidArgumentException;
-use Cego\SeamlessWallet\RequestDrivers\Response;
-use Cego\RequestInsurance\Models\RequestInsurance;
-use Cego\SeamlessWallet\RequestDrivers\RequestDriver;
+use Cego\ServiceClientBase\AbstractServiceClient;
 use Cego\SeamlessWallet\Paginators\TransactionsPaginator;
-use Cego\SeamlessWallet\RequestDrivers\HttpRequestDriver;
-use Cego\SeamlessWallet\RequestDrivers\RequestInsuranceDriver;
-use Cego\SeamlessWallet\Exceptions\SeamlessWalletRequestFailedException;
+use Cego\ServiceClientBase\Exceptions\ServiceRequestFailedException;
 
 /**
  * Class SeamlessWallet
  */
-class SeamlessWallet
+class SeamlessWallet extends AbstractServiceClient
 {
     // Transaction endpoints
     public const TRANSACTION_ROLLBACK_ENDPOINT = '/api/v1/transactions/%s/rollback';
@@ -32,66 +28,6 @@ class SeamlessWallet
 
     public string $playerId;
 
-    // Endpoint & credentials
-    protected string $serviceBaseUrl;
-    protected string $username;
-    protected string $password;
-
-    public bool $useRequestInsurance = false;
-
-    /**
-     * Private constructor to disallow using new
-     *
-     * @param string $serviceBaseUrl
-     * @param string $username
-     * @param string $password
-     */
-    final protected function __construct(string $serviceBaseUrl, string $username, string $password)
-    {
-        // Validate data
-        if (empty($serviceBaseUrl) || empty($username) || empty($password)) {
-            throw new InvalidArgumentException("serviceBaseUrl, username, and password cannot be empty!");
-        }
-
-        $this->serviceBaseUrl = $serviceBaseUrl;
-        $this->username = $username;
-        $this->password = $password;
-    }
-
-    /**
-     * Named constructor
-     *
-     * @param string $serviceBaseUrl
-     * @param string $username
-     * @param string $password
-     *
-     * @return static
-     */
-    public static function create(string $serviceBaseUrl, string $username, string $password): self
-    {
-        return new static($serviceBaseUrl, $username, $password);
-    }
-
-    /**
-     * Enables or disables the use of request insurance.
-     *
-     * NOTE: Request insurance is only possible for POST requests.
-     *
-     * @param bool $useRequestInsurance
-     *
-     * @return $this
-     */
-    public function useRequestInsurance(bool $useRequestInsurance = true): self
-    {
-        if ($useRequestInsurance && $this->cannotUseRequestInsurance()) {
-            throw new InvalidArgumentException('You need to install the Cego/Request-insurance package to use request insurance.');
-        }
-
-        $this->useRequestInsurance = $useRequestInsurance;
-
-        return $this;
-    }
-
     /**
      * Creates the users wallet
      *
@@ -99,7 +35,7 @@ class SeamlessWallet
      *
      * @return self
      *
-     * @throws SeamlessWalletRequestFailedException
+     * @throws ServiceRequestFailedException
      */
     public function createWallet($options = []): self
     {
@@ -144,7 +80,7 @@ class SeamlessWallet
      *
      * @return string|null
      *
-     * @throws SeamlessWalletRequestFailedException
+     * @throws ServiceRequestFailedException
      */
     public function getBalance(bool $forceFresh = false, array $options = []): ?string
     {
@@ -192,7 +128,7 @@ class SeamlessWallet
      *
      * @return string|null
      *
-     * @throws SeamlessWalletRequestFailedException
+     * @throws ServiceRequestFailedException
      */
     public function deposit($amount, string $transactionId, int $context = 1, string $externalId = null, array $options = []): ?string
     {
@@ -210,7 +146,7 @@ class SeamlessWallet
      *
      * @return string
      *
-     * @throws SeamlessWalletRequestFailedException
+     * @throws ServiceRequestFailedException
      */
     public function withdraw($amount, string $transactionId, int $context = 1, string $externalId = null, array $options = []): ?string
     {
@@ -229,7 +165,7 @@ class SeamlessWallet
      *
      * @return string|null
      *
-     * @throws SeamlessWalletRequestFailedException
+     * @throws ServiceRequestFailedException
      */
     protected function makeTransaction(string $endpoint, $amount, string $transactionId, int $context = 1, string $externalId = null, array $options = []): ?string
     {
@@ -269,7 +205,7 @@ class SeamlessWallet
      *
      * @return TransactionsPaginator
      *
-     * @throws SeamlessWalletRequestFailedException
+     * @throws ServiceRequestFailedException
      */
     public function getPaginatedTransactions(Carbon $fromDate, Carbon $toDate, array $contexts = [], int $page = 1, ?int $perPage = null, array $options = []): TransactionsPaginator
     {
@@ -304,7 +240,7 @@ class SeamlessWallet
      * @param string $transactionId
      * @param array $options
      *
-     * @throws SeamlessWalletRequestFailedException
+     * @throws ServiceRequestFailedException
      */
     public function rollbackTransaction(string $transactionId, array $options = []): void
     {
@@ -325,126 +261,6 @@ class SeamlessWallet
     protected function getFullEndpointUrl(string $endpoint): string
     {
         return sprintf('%s%s', $this->serviceBaseUrl, $endpoint);
-    }
-
-    /**
-     * Performs a post request
-     *
-     * @param string $endpoint
-     * @param array $data
-     * @param array $options
-     *
-     * @return Response
-     *
-     * @throws SeamlessWalletRequestFailedException
-     */
-    protected function postRequest(string $endpoint, array $data = [], array $options = []): Response
-    {
-        return $this->makeRequest('post', $endpoint, $data, $options);
-    }
-
-    /**
-     * Performs a get request
-     *
-     * @param string $endpoint
-     * @param array $queryParameters
-     * @param array $options
-     *
-     * @return Response
-     *
-     * @throws SeamlessWalletRequestFailedException
-     */
-    protected function getRequest(string $endpoint, array $queryParameters = [], array $options = []): Response
-    {
-        return $this->makeRequest('get', $endpoint, $queryParameters, $options);
-    }
-
-    /**
-     * Makes a request to the service
-     *
-     * @param string $method
-     * @param string $endpoint
-     * @param array $data
-     * @param array $options
-     *
-     * @return Response
-     *
-     * @throws SeamlessWalletRequestFailedException
-     */
-    protected function makeRequest(string $method, string $endpoint, array $data = [], array $options = []): Response
-    {
-        $driver = $this->getRequestDriver($method);
-
-        $headers = [
-            'Content-Type'  => 'application/json',
-            'Accept'        => 'application/json',
-            'Authorization' => $this->getAuth(),
-        ];
-
-        return $driver->makeRequest($method, $this->getFullEndpointUrl($endpoint), $data, $headers, $options);
-    }
-
-    /**
-     * Returns the Authorization header value
-     *
-     * @return string
-     */
-    protected function getAuth(): string
-    {
-        $auth = sprintf('%s:%s', $this->username, $this->password);
-
-        return sprintf('Basic %s', base64_encode($auth));
-    }
-
-    /**
-     * Returns the request driver that should be used for sending requests from the client towards the service
-     *
-     * @param string $method
-     *
-     * @return RequestDriver
-     */
-    protected function getRequestDriver(string $method): RequestDriver
-    {
-        $isPostRequest = strcasecmp($method, 'post') == 0;
-
-        return $isPostRequest && $this->shouldUseRequestInsurance()
-            ? new RequestInsuranceDriver()
-            : new HttpRequestDriver();
-    }
-
-    /**
-     * Returns true if the client should use request insurance, and false otherwise
-     *
-     * @return bool
-     */
-    protected function shouldUseRequestInsurance(): bool
-    {
-        return $this->useRequestInsurance
-            && $this->canUseRequestInsurance();
-    }
-
-    /**
-     * Checks if it is possible to use request insurance or not.
-     *
-     * Basically it checks if the request insurance package is installed or not
-     *
-     * @return bool
-     */
-    protected function canUseRequestInsurance(): bool
-    {
-        return class_exists(RequestInsurance::class);
-    }
-
-    /**
-     * Checks if it is possible to use request insurance or not.
-     *
-     * Basically it checks if the request insurance package is installed or not
-     *
-     * @return bool
-     */
-    protected function cannotUseRequestInsurance(): bool
-    {
-        return ! $this->canUseRequestInsurance();
     }
 
     /**
@@ -472,7 +288,7 @@ class SeamlessWallet
      *
      * @return string
      *
-     * @throws SeamlessWalletRequestFailedException
+     * @throws ServiceRequestFailedException
      */
     public function getSumOfWalletBalances(array $options = []): string
     {
