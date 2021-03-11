@@ -123,6 +123,7 @@ class SeamlessWallet extends AbstractServiceClient
      * @param string|float|int $amount
      * @param string $transactionId
      * @param int $context
+     * @param string|null $description
      * @param string|null $externalId
      * @param array $options
      *
@@ -130,9 +131,9 @@ class SeamlessWallet extends AbstractServiceClient
      *
      * @throws ServiceRequestFailedException
      */
-    public function deposit($amount, string $transactionId, int $context = 1, string $externalId = null, array $options = []): ?string
+    public function deposit($amount, string $transactionId, int $context = 1, ?string $description = null, string $externalId = null, array $options = []): ?string
     {
-        return $this->makeTransaction(self::WALLET_DEPOSIT_ENDPOINT, $amount, $transactionId, $context, $externalId, $options);
+        return $this->makeTransaction(self::WALLET_DEPOSIT_ENDPOINT, $amount, $transactionId, $context, $description, $externalId, $options);
     }
 
     /**
@@ -141,6 +142,7 @@ class SeamlessWallet extends AbstractServiceClient
      * @param string|float|int $amount
      * @param string $transactionId
      * @param int $context
+     * @param string|null $description
      * @param string|null $externalId
      * @param array $options
      *
@@ -148,9 +150,9 @@ class SeamlessWallet extends AbstractServiceClient
      *
      * @throws ServiceRequestFailedException
      */
-    public function withdraw($amount, string $transactionId, int $context = 1, string $externalId = null, array $options = []): ?string
+    public function withdraw($amount, string $transactionId, int $context = 1, ?string $description = null, string $externalId = null, array $options = []): ?string
     {
-        return $this->makeTransaction(self::WALLET_WITHDRAW_ENDPOINT, $amount, $transactionId, $context, $externalId, $options);
+        return $this->makeTransaction(self::WALLET_WITHDRAW_ENDPOINT, $amount, $transactionId, $context, $description, $externalId, $options);
     }
 
     /**
@@ -160,6 +162,7 @@ class SeamlessWallet extends AbstractServiceClient
      * @param string|float|int $amount
      * @param string $transactionId
      * @param int $context
+     * @param string|null $description
      * @param string|null $externalId
      * @param array $options
      *
@@ -167,7 +170,7 @@ class SeamlessWallet extends AbstractServiceClient
      *
      * @throws ServiceRequestFailedException
      */
-    protected function makeTransaction(string $endpoint, $amount, string $transactionId, int $context = 1, string $externalId = null, array $options = []): ?string
+    protected function makeTransaction(string $endpoint, $amount, string $transactionId, int $context, ?string $description, ?string $externalId, array $options): ?string
     {
         $this->guardAgainstMissingPlayerId();
 
@@ -179,6 +182,10 @@ class SeamlessWallet extends AbstractServiceClient
 
         if ($externalId !== null) {
             $requestData['external_id'] = $externalId;
+        }
+
+        if ($description !== null) {
+            $requestData['description'] = $description;
         }
 
         $response = $this->postRequest(sprintf($endpoint, $this->playerId), $requestData, $options);
