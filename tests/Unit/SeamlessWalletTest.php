@@ -15,7 +15,7 @@ class SeamlessWalletTest extends TestCase
     protected function setUp(): void
     {
         $this->seamlessWallet = SeamlessWallet::create("http://seamless-wallet-stage.whatup156453.dk")
-                                              ->auth("root", "secret123");
+            ->auth("root", "secret123");
 
         parent::setUp();
     }

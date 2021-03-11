@@ -21,40 +21,40 @@ $seamlessWallet->forPlayer($playerId);
 ```php
 // Creating a user wallet
 SeamlessWallet::create(/* < Base Url > */)
-              ->auth(/* < Credentials > */)
-              ->forPlayer($playerId)
-              ->createWallet();
+    ->auth(/* < Credentials > */)
+    ->forPlayer($playerId)
+    ->createWallet();
 ```
 
 ```php
 // Deposits / withdraws / balance / rollback
 SeamlessWallet::create(/* < Base Url > */)
-              ->auth(/* < Credentials > */)
-              ->forPlayer($playerId)
-              ->deposit(100, "UUID6" /*, $transaction_context, $external_id */);
+    ->auth(/* < Credentials > */)
+    ->forPlayer($playerId)
+    ->deposit(100, "UUID6" /*, $transaction_context, $external_id */);
 
 SeamlessWallet::create(/* < Base Url > */)
-              ->auth(/* < Credentials > */)
-              ->forPlayer($playerId)
-              ->withdraw(20, "UUID6" /*, $transaction_context, $external_id */);
+    ->auth(/* < Credentials > */)
+    ->forPlayer($playerId)
+    ->withdraw(20, "UUID6" /*, $transaction_context, $external_id */);
 
 SeamlessWallet::create(/* < Base Url > */)
-              ->auth(/* < Credentials > */)
-              ->forPlayer($playerId)
-              ->getBalance();
+    ->auth(/* < Credentials > */)
+    ->forPlayer($playerId)
+    ->getBalance();
 
 SeamlessWallet::create(/* < Base Url > */)
-              ->auth(/* < Credentials > */)
-              ->rollbackTransaction("UUID6");
+    ->auth(/* < Credentials > */)
+    ->rollbackTransaction("UUID6");
 ```
 
 ```php
 // Using request insurance
 SeamlessWallet::create(/* < Base Url > */)
-              ->auth(/* < Credentials > */)
-              ->useRequestInsurance()
-              ->forPlayer($playerId)
-              ->deposit(100, "UUID6" /*, $transaction_context, $external_id */);
+    ->auth(/* < Credentials > */)
+    ->useRequestInsurance()
+    ->forPlayer($playerId)
+    ->deposit(100, "UUID6" /*, $transaction_context, $external_id */);
 ```
 
 <sub>Note: After calling ->forPlayer() the id is kept in memory for later use</sub>

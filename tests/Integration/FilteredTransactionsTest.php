@@ -19,7 +19,7 @@ class FilteredTransactionsTest extends TestCase
         parent::setUp();
 
         $this->seamlessWallet = SeamlessWallet::create(env("SEAMLESS_WALLET_BASE_URL"))
-                                              ->auth(env("SEAMLESS_WALLET_USERNAME"), env("SEAMLESS_WALLET_PASSWORD"));
+            ->auth(env("SEAMLESS_WALLET_USERNAME"), env("SEAMLESS_WALLET_PASSWORD"));
 
         $this->seamlessWallet->forPlayer(random_int(10000000, 999999999));
         $this->seamlessWallet->createWallet();
