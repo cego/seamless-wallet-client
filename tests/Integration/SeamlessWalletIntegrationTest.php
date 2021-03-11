@@ -2,9 +2,11 @@
 
 namespace Tests\Integration;
 
+use Carbon\Carbon;
 use Tests\TestCase;
 use Ramsey\Uuid\Uuid;
 use Cego\SeamlessWallet\SeamlessWallet;
+use Cego\SeamlessWallet\Enums\TransactionContext;
 
 class SeamlessWalletIntegrationTest extends TestCase
 {
@@ -104,5 +106,20 @@ class SeamlessWalletIntegrationTest extends TestCase
 
         // Assert
         $this->assertEquals(100, $this->seamlessWallet->getBalance());
+    }
+
+    /** @test */
+    public function it_can_send_descriptions(): void
+    {
+        // Arrange
+        $this->seamlessWallet->forPlayer(random_int(100000, 9999999))->createWallet();
+
+        // Act
+        $this->seamlessWallet->deposit(100, Uuid::uuid6(), TransactionContext::PAYMENT, 'My custom description');
+        $paginator = $this->seamlessWallet->getPaginatedTransactions(Carbon::now(), Carbon::now());
+
+        // Assert
+        $this->assertCount(1, $paginator->getData());
+        $this->assertEquals('My custom description', $paginator->getData()[0]->description);
     }
 }
