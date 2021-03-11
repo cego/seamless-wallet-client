@@ -12,7 +12,7 @@ The seamless wallet client implements a fluid interface for interacting with the
 ```php
 // Getting a client instance
 $seamlessWallet = SeamlessWallet::create('base_url')
-                                ->auth(/* < Credentials > */);
+    ->auth(/* < Credentials > */);
 
 // Setting the target player
 $seamlessWallet->forPlayer($playerId);
