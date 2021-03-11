@@ -14,9 +14,10 @@ use Nbj\PropertyContainer;
  * @property-read int $transaction_type_id
  * @property-read int $transaction_context_id
  * @property-read string $external_id
- * @property-read ?string $externalName
+ * @property-read string|null $externalName
  * @property-read string $amount
  * @property-read string $new_balance
+ * @property-read string|null $description
  * @property-read Carbon|null $rolled_back_at
  * @property-read Carbon|null $created_at
  * @property-read Carbon|null $updated_at
